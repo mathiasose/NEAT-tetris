@@ -1,5 +1,7 @@
+from collections import Counter
 from enum import Enum
-from random import randrange as rand, choice
+from random import randrange as rand
+from random import choice
 
 T = [[1, 1, 1],
      [0, 1, 0]]
@@ -80,6 +82,8 @@ class Tetris(object):
         self.score = 0
         self.lines = 0
         self.game_over = False
+        self.moves = []
+        self.t = 0
 
     @property
     def tetromino_h(self):
@@ -123,7 +127,8 @@ class Tetris(object):
             self.board = join_matrices(
                 self.board,
                 self.tetromino,
-                (self.tetromino_x, self.tetromino_y))
+                (self.tetromino_x, self.tetromino_y),
+            )
             self.new_tetromino()
             cleared_rows = 0
 
@@ -150,11 +155,12 @@ class Tetris(object):
             self.tetromino = new_tetromino
 
     def action(self, which):
+        self.moves.append(which)
         return {
             Actions.LEFT: lambda: self.move(-1),
             Actions.RIGHT: lambda: self.move(1),
             Actions.ROTATE: lambda: self.rotate_tetromino(),
-            Actions.DROP_ONE: lambda: self.drop(True),
+            Actions.DROP_ONE: lambda: self.drop(),
             Actions.DROP_TO_BOTTOM: lambda: self.insta_drop(),
         }[which]()
 
@@ -170,10 +176,14 @@ class Tetris(object):
         for y in range(self.tetromino_h):
             for x in range(self.tetromino_w):
                 if self.tetromino[y][x] != 0:
-                    b[self.tetromino_y + y][self.tetromino_x + x] = self.tetromino[y][x]
+                    b[self.tetromino_y + y][self.tetromino_x +
+                                            x] = self.tetromino[y][x]
 
         return b
 
     def __str__(self):
-        l = lambda v: ' ' if v == 0 else str(v)
-        return '|' + '|\n|'.join(''.join(l(v) for v in row) for row in self.get_board_with_tetromino()) + '|'
+        def l(v): return ' ' if v == 0 else str(v)
+        return '|' + '|\n|'.join(''.join(l(v) for v in row) for row in self.get_board_with_tetromino()) + '|' \
+            + '\nLines:\t{}'.format(self.lines) \
+            + '\nScore:\t{}'.format(self.score) \
+            + '\nMoves:\t{}'.format(Counter(self.moves).most_common())

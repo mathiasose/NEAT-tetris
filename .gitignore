@@ -1,2 +1,4 @@
+*.csv
 *.pyc
 __pycache__/
+neat-checkpoint-*
